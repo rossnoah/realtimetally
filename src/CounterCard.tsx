@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Counter } from "./App";
 import tinycolor from "tinycolor2";
 import { Minus, X, Plus } from "lucide-react";
@@ -16,6 +16,25 @@ const CounterCard: React.FC<CounterCardProps> = ({
   onDecrement,
   onDelete,
 }) => {
+  const [isIncrementCooldown, setIsIncrementCooldown] = useState(false);
+
+  const handleIncrement = () => {
+    if (!isIncrementCooldown) {
+      onIncrement(counter);
+      setIsIncrementCooldown(true);
+    }
+  };
+
+  useEffect(() => {
+    if (isIncrementCooldown) {
+      const cooldownTimer = setTimeout(() => {
+        setIsIncrementCooldown(false);
+      }, 1000);
+
+      return () => clearTimeout(cooldownTimer);
+    }
+  }, [isIncrementCooldown]);
+
   const textColor = tinycolor(counter.color).isDark() ? "#ffffff" : "#000000";
 
   return (
@@ -61,11 +80,13 @@ const CounterCard: React.FC<CounterCardProps> = ({
       </div>
       <div className="px-6 pt-4 pb-2 flex justify-center">
         <button
-          onClick={() => onIncrement(counter)}
+          onClick={handleIncrement}
+          disabled={isIncrementCooldown}
           className="bg-button-bg-color hover:bg-button-hover-bg-color text-button-text-color font-bold py-2 px-6 rounded flex items-center justify-center"
           style={{
             backgroundColor: "var(--button-bg-color)",
             color: "var(--button-text-color)",
+            opacity: isIncrementCooldown ? 0.5 : 1,
           }}
         >
           <Plus size={24} />
