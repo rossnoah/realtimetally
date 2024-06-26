@@ -10,7 +10,7 @@
     <script src="https://unpkg.com/alpinejs@3.8.1/dist/cdn.min.js" defer></script>
 </head>
 <body class="bg-gray-100 p-4">
-    <div x-data="tallyApp()" class="max-w-xl mx-auto bg-white p-4 rounded-lg shadow-md">
+    <div x-data="tallyApp()" x-init="init()" class="max-w-xl mx-auto bg-white p-4 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-4">Real-Time Tally System</h1>
         <div class="mb-4">
             <input x-model="newTally.name" type="text" placeholder="Tally Name" class="border p-2 rounded w-full mb-2">
@@ -55,7 +55,7 @@
                     name: '',
                     color: '#ffffff'
                 },
-                async init() {
+                init() {
                     onSnapshot(collection(db, "tallies"), (snapshot) => {
                         this.tallies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     });
