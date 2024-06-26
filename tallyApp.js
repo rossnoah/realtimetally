@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
 // Firebase configuration
@@ -29,8 +30,17 @@ document.addEventListener("alpine:init", () => {
     tallies: [],
     newTallyName: "",
     newTallyColor: "#ffffff",
-    init() {
+    async init() {
       const tallyCollection = collection(db, "tallies");
+
+      // Fetch all tallies initially
+      const querySnapshot = await getDocs(tallyCollection);
+      this.tallies = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Set up real-time listener for subsequent updates
       onSnapshot(tallyCollection, (snapshot) => {
         this.tallies = snapshot.docs.map((doc) => ({
           id: doc.id,
