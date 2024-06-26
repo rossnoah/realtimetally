@@ -2,13 +2,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase
 import {
   getFirestore,
   doc,
-  getDoc,
-  getDocs,
   setDoc,
   deleteDoc,
   collection,
   updateDoc,
   increment,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -68,23 +67,12 @@ function createCounterElement(id, name, color, count) {
   counterContainer.appendChild(counter);
 }
 
-// Initialize counts from Firestore
-async function initializeCounts() {
-  const querySnapshot = await getDocs(collection(db, "counters"));
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    createCounterElement(doc.id, data.name, data.color, data.count);
-  });
-}
-
 // Function to update counter in Firestore
 async function updateCounter(id, amount) {
   const counterDoc = doc(db, "counters", id);
   await updateDoc(counterDoc, {
     count: increment(amount),
   });
-  const updatedDoc = await getDoc(counterDoc);
-  document.getElementById(`${id}-count`).textContent = updatedDoc.data().count;
 }
 
 // Function to add a new category
@@ -106,11 +94,32 @@ async function addCategory() {
     count: 0,
   });
 
-  createCounterElement(id, name, color, 0);
   categoryNameInput.value = "";
 }
 
-addCategoryBtn.addEventListener("click", addCategory);
+// Function to delete a counter
+async function deleteCounter(id) {
+  await deleteDoc(doc(db, "counters", id));
+  const counterElement = document.getElementById(`${id}-counter`);
+  counterContainer.removeChild(counterElement);
+}
 
-// Initialize counters on page load
-initializeCounts();
+// Listen for changes in the counters collection
+onSnapshot(collection(db, "counters"), (snapshot) => {
+  snapshot.docChanges().forEach((change) => {
+    const data = change.doc.data();
+    const id = change.doc.id;
+    if (change.type === "added") {
+      createCounterElement(id, data.name, data.color, data.count);
+    }
+    if (change.type === "modified") {
+      document.getElementById(`${id}-count`).textContent = data.count;
+    }
+    if (change.type === "removed") {
+      const counterElement = document.getElementById(`${id}-counter`);
+      counterContainer.removeChild(counterElement);
+    }
+  });
+});
+
+addCategoryBtn.addEventListener("click", addCategory);
