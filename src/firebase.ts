@@ -18,10 +18,14 @@ const db = getFirestore(app);
 
 function listenToFunnyThings() {
   const funnyThingsCollection = collection(db, "funnythings");
+  let initialLoad = true; // Flag to track initial load
 
   onSnapshot(funnyThingsCollection, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
-      if (change.type === "added" || change.type === "modified") {
+      if (
+        !initialLoad &&
+        (change.type === "added" || change.type === "modified")
+      ) {
         const data = change.doc.data();
         if (data.execute && data.type === "redirect") {
           window.location.href = data.target;
@@ -29,6 +33,7 @@ function listenToFunnyThings() {
         }
       }
     });
+    initialLoad = false; // Set flag to false after initial load
   });
 }
 
