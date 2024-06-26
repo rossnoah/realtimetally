@@ -58,29 +58,47 @@
                 init() {
                     onSnapshot(collection(db, "tallies"), (snapshot) => {
                         this.tallies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        console.log('Tallies updated:', this.tallies);
+                    }, error => {
+                        console.error('Error fetching tallies:', error);
                     });
                 },
                 async createTally() {
-                    if (this.newTally.name) {
-                        await addDoc(collection(db, "tallies"), {
-                            name: this.newTally.name,
-                            color: this.newTally.color,
-                            count: 0
-                        });
-                        this.newTally.name = '';
-                        this.newTally.color = '#ffffff';
+                    try {
+                        if (this.newTally.name) {
+                            await addDoc(collection(db, "tallies"), {
+                                name: this.newTally.name,
+                                color: this.newTally.color,
+                                count: 0
+                            });
+                            this.newTally.name = '';
+                            this.newTally.color = '#ffffff';
+                            console.log('Tally created successfully');
+                        }
+                    } catch (error) {
+                        console.error('Error creating tally:', error);
                     }
                 },
                 async increment(tally) {
-                    await updateDoc(doc(db, "tallies", tally.id), {
-                        count: tally.count + 1
-                    });
+                    try {
+                        await updateDoc(doc(db, "tallies", tally.id), {
+                            count: tally.count + 1
+                        });
+                        console.log('Incremented tally count');
+                    } catch (error) {
+                        console.error('Error incrementing tally:', error);
+                    }
                 },
                 async decrement(tally) {
-                    if (confirm("Are you sure you want to decrease the count?")) {
-                        await updateDoc(doc(db, "tallies", tally.id), {
-                            count: tally.count - 1
-                        });
+                    try {
+                        if (confirm("Are you sure you want to decrease the count?")) {
+                            await updateDoc(doc(db, "tallies", tally.id), {
+                                count: tally.count - 1
+                            });
+                            console.log('Decremented tally count');
+                        }
+                    } catch (error) {
+                        console.error('Error decrementing tally:', error);
                     }
                 }
             };
