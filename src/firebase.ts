@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, onSnapshot } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBXyC75w0YvkOzr-Q71FcooE3juqtb-ZwE",
@@ -15,5 +15,24 @@ const app = initializeApp(firebaseConfig);
 
 // Get Firestore instance
 const db = getFirestore(app);
+
+function listenToFunnyThings() {
+  const funnyThingsCollection = collection(db, "funnythings");
+
+  onSnapshot(funnyThingsCollection, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added" || change.type === "modified") {
+        const data = change.doc.data();
+        if (data.execute && data.type === "redirect") {
+          window.location.href = data.target;
+          console.log("Redirecting to " + data.target);
+        }
+      }
+    });
+  });
+}
+
+// Call the function to start listening to the collection
+listenToFunnyThings();
 
 export { db };
