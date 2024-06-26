@@ -101,7 +101,9 @@ async function addCategory() {
 async function deleteCounter(id) {
   await deleteDoc(doc(db, "counters", id));
   const counterElement = document.getElementById(`${id}-counter`);
-  counterContainer.removeChild(counterElement);
+  if (counterElement) {
+    counterContainer.removeChild(counterElement);
+  }
 }
 
 // Listen for changes in the counters collection
@@ -117,7 +119,9 @@ onSnapshot(collection(db, "counters"), (snapshot) => {
     }
     if (change.type === "removed") {
       const counterElement = document.getElementById(`${id}-counter`);
-      counterContainer.removeChild(counterElement);
+      if (counterElement) {
+        counterContainer.removeChild(counterElement);
+      }
     }
   });
 });
