@@ -29,6 +29,8 @@ const addCategoryBtn = document.getElementById("add-category-btn");
 const categoryNameInput = document.getElementById("category-name");
 const categoryColorInput = document.getElementById("category-color");
 
+const countersMap = new Map(); // Map to store counter data
+
 // Function to create a counter element
 function createCounterElement(id, name, color, count) {
   const counter = document.createElement("div");
@@ -65,6 +67,7 @@ function createCounterElement(id, name, color, count) {
   });
 
   counterContainer.appendChild(counter);
+  countersMap.set(id, { name, color, count }); // Add to map
 }
 
 // Function to update counter in Firestore
@@ -104,6 +107,7 @@ async function deleteCounter(id) {
   if (counterElement) {
     counterContainer.removeChild(counterElement);
   }
+  countersMap.delete(id); // Remove from map
 }
 
 // Listen for changes in the counters collection
@@ -112,16 +116,20 @@ onSnapshot(collection(db, "counters"), (snapshot) => {
     const data = change.doc.data();
     const id = change.doc.id;
     if (change.type === "added") {
-      createCounterElement(id, data.name, data.color, data.count);
+      if (!countersMap.has(id)) {
+        createCounterElement(id, data.name, data.color, data.count);
+      }
     }
     if (change.type === "modified") {
       document.getElementById(`${id}-count`).textContent = data.count;
+      countersMap.set(id, { ...countersMap.get(id), count: data.count }); // Update map
     }
     if (change.type === "removed") {
       const counterElement = document.getElementById(`${id}-counter`);
       if (counterElement) {
         counterContainer.removeChild(counterElement);
       }
+      countersMap.delete(id); // Remove from map
     }
   });
 });
